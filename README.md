@@ -1,159 +1,185 @@
-# Turborepo starter
+# svg-to-react-native
 
-This Turborepo starter is maintained by the Turborepo core team.
+Convert SVG files into React Native component files using a single CLI command.
 
-## Using this example
+The converter:
 
-Run the following command:
+- Scans your input directory recursively
+- Converts every `.svg` to `.tsx`
+- Recreates the same nested folder structure in your output directory
+- Deletes each original `.svg` after successful conversion
+- Optionally generates a barrel export file
 
-```sh
-npx create-turbo@latest
+## Install
+
+```bash
+pnpm add -D svg-to-react-native
 ```
 
-## What's inside?
+Or run it without installing:
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+pnpm dlx svg-to-react-native --help
 ```
 
-Without global `turbo`, use your package manager:
+## Quick Start
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+```bash
+svg-to-react-native \
+	--svg-dir ./assets/icons \
+	--output-dir ./src/icons \
+	--export-file
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+`--export-file` with no value writes `index.ts` inside each output directory that receives converted files.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## CLI Options
 
-```sh
-turbo build --filter=docs
+```text
+Usage: svg-to-react-native [options]
+
+Options:
+	-s, --svg-dir <path>          Input directory containing SVG files
+	-o, --output-dir <path>       Output directory for converted components
+	-e, --export-file [path]      Generate export file(s): no path=per directory, with path=single barrel file
+	-r, --replace-attr <pair...>  Attribute replacement: "from=to"
+	-c, --filename-case <case>    pascal | kebab | camel
+	-i, --icon [boolean]          Treat SVGs as icons
+	-n, --native [boolean]        Output React Native-compatible components
+	-d, --dimensions [boolean]    Preserve width/height attributes
+	-j, --jsx-runtime <runtime>   automatic | classic
+	-V, --version                 Print version
+	-h, --help                    Show help
 ```
 
-Without global `turbo`:
+## Config File Support
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+The CLI reads config with cosmiconfig using the module name `svgrn`.
+
+Supported locations include:
+
+- `.svgrnrc`
+- `.svgrnrc.json`
+- `.svgrnrc.yaml`
+- `.svgrnrc.yml`
+- `.svgrnrc.js`
+- `.svgrnrc.mjs`
+- `.svgrnrc.cjs`
+- `svgrn.config.js`
+- `svgrn.config.mjs`
+- `svgrn.config.cjs`
+- `package.json` under the `svgrn` key
+
+CLI flags override config file values.
+
+### Example: .svgrnrc.json
+
+```json
+{
+	"svgDir": "./assets/icons",
+	"outputDir": "./src/icons",
+	"exportFile": "./src/icons/index.ts",
+	"filenameCase": "pascal",
+	"replaceAttrValues": {
+		"#2E2313": "{fill}",
+		"#000": "{color}"
+	},
+	"icon": false,
+	"native": true,
+	"dimensions": false,
+	"jsxRuntime": "automatic"
+}
 ```
 
-### Develop
+### Example: package.json
 
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
+```json
+{
+	"name": "my-app",
+	"svgrn": {
+		"svgDir": "./assets/icons",
+		"outputDir": "./src/icons",
+		"filenameCase": "pascal"
+	}
+}
 ```
 
-Without global `turbo`, use your package manager:
+## Example Workflows
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+### 1. Convert everything and generate exports
+
+```bash
+svg-to-react-native -s ./assets/icons -o ./src/icons -e
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+With this mode, nested output folders get their own `index.ts` automatically.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+### 2. Use a custom export file path
 
-```sh
-turbo dev --filter=web
+```bash
+svg-to-react-native -s ./assets/icons -o ./src/icons -e ./src/icons/exports.ts
 ```
 
-Without global `turbo`:
+With a custom path, a single barrel file is generated at that exact location.
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+### 3. Replace hardcoded color values
+
+```bash
+svg-to-react-native \
+	-s ./assets/icons \
+	-o ./src/icons \
+	-r "#2E2313={fill}" "#000={color}"
 ```
 
-### Remote Caching
+### 4. Keep dimensions and use classic JSX runtime
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
+```bash
+svg-to-react-native \
+	-s ./assets/icons \
+	-o ./src/icons \
+	-d true \
+	-j classic
 ```
 
-Without global `turbo`, use your package manager:
+## Input and Output Behavior
 
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
+If your input looks like this:
+
+```text
+assets/icons/
+	social/
+		twitter.svg
+	navigation/
+		home.svg
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+And you run:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
+```bash
+svg-to-react-native -s ./assets/icons -o ./src/icons
 ```
 
-Without global `turbo`:
+The output will look like this:
 
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
+```text
+src/icons/
+	index.ts
+	social/
+		twitter.tsx
+		index.ts
+	navigation/
+		home.tsx
+		index.ts
 ```
 
-## Useful Links
+Original `.svg` files are removed after successful conversion.
 
-Learn more about the power of Turborepo:
+## Notes
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- This package is focused on CLI usage.
+- Generated components target React Native SVG usage.
+- Run `svg-to-react-native --help` for the latest option list.
+
+## License
+
+MIT
