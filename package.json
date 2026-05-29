@@ -1,6 +1,6 @@
 {
-  "name": "svg-to-react-native",
-  "version": "1.0.1",
+  "name": "rn-svg-converter",
+  "version": "1.0.0",
   "type": "module",
   "description": "CLI tool to convert SVG files to React Native SVG components",
   "keywords": ["svg", "react-native", "svgr", "converter", "cli", "typescript"],

@@ -1,4 +1,4 @@
-# svg-to-react-native
+# rn-svg-converter
 
 Convert SVG files into React Native component files using a single CLI command.
 
@@ -13,13 +13,13 @@ The converter:
 ## Install
 
 ```bash
-pnpm add -D svg-to-react-native
+pnpm add -D rn-svg-converter
 ```
 
 Or run it without installing:
 
 ```bash
-pnpm dlx svg-to-react-native --help
+pnpm dlx rn-svg-converter --help
 ```
 
 ## Quick Start
